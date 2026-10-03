@@ -1,11 +1,95 @@
+import { resolveCoreSlot, TextareaRenderable } from "@opentui/core";
+import { CommandPalette } from "./command-menu";
 import { StatusBar } from "./status-bar";
+import { useCallback, useEffect, useRef } from "react";
+import { useRenderer } from "@opentui/react";
+import { useCommandMenu } from "./command-menu/use-command-menu";
+import type { Command } from "./command-menu/types";
 
 type Props = {
   disabled?: boolean;
-  onSubmit?: () => void;
+  onSubmit: (text: string) => void;
 };
 
 export function InputBar({ disabled = false, onSubmit }: Props) {
+
+  const textAreaRef = useRef<TextareaRenderable>(null);
+  const onSubmitRef = useRef<() => void>(() => { });
+  const renderer = useRenderer();
+
+  const {
+    showCommandMenu,
+    commandQuery,
+    selectedIndex,
+    scrollRef,
+    handleContentChange,
+    resolveCommand,
+    setSelectedIndex,
+  } = useCommandMenu()
+
+  const handleCommandExecute = useCallback((index: number) => {
+    const command = resolveCommand(index);
+    handleCommand(command)
+  }, [])
+
+  const handleTextAreaContentChange = useCallback(() => {
+    const textarea = textAreaRef.current
+    if (!textarea) return;
+
+    handleContentChange(textarea.plainText)
+  }, [])
+
+  const handleSubmit = useCallback(() => {
+    if (disabled) return;
+
+    const textarea = textAreaRef.current
+    if (!textarea) return
+
+    const text = textarea.plainText.trim();
+    if (text.length === 0) return
+
+    onSubmit(text);
+    textarea.setText("");
+  }, [disabled,onSubmit])
+
+  const handleCommand = useCallback((command: Command| undefined) => {
+    const textArea = textAreaRef.current
+    if (!textArea || !command) return;
+
+    textArea.setText("");
+    if (command.action) {
+      command.action({
+        exit: () => renderer.destroy()
+      })
+    } else {
+      textArea.insertText(command.value + " ");
+    }
+  }, [renderer])
+
+
+  // wire up textarea submit handle once so it always reads the new state.
+  useEffect(() => {
+    const textarea = textAreaRef.current
+    if (!textarea) return
+
+    textarea.onSubmit = () => {
+      onSubmitRef.current();
+    }
+  }, [])
+
+  onSubmitRef.current = () => {
+    if (disabled) return
+
+    if (showCommandMenu) {
+      const command = resolveCommand(selectedIndex)
+      handleCommand(command)
+      return;
+    }
+
+    handleSubmit();
+  }
+
+
   return (
     <box width="100%">
       <box
@@ -19,6 +103,17 @@ export function InputBar({ disabled = false, onSubmit }: Props) {
         paddingY={1}
         gap={1}
       >
+        {showCommandMenu &&
+          <box position="absolute" bottom={"100%"} left={0} width={"100%"} backgroundColor={"#160e10"} zIndex={10}>
+            <CommandPalette
+              query={commandQuery}
+              selectedIndex={selectedIndex}
+              scrollRef={scrollRef}
+              onSelect={setSelectedIndex}
+              onExecute={handleCommandExecute}
+            />
+          </box>
+        }
         <textarea
           focused={!disabled}
           width="100%"
@@ -27,7 +122,8 @@ export function InputBar({ disabled = false, onSubmit }: Props) {
           placeholderColor="#734e44"
           textColor="#fdeee9"
           backgroundColor="transparent"
-          onSubmit={onSubmit}
+          onContentChange={handleTextAreaContentChange}
+          ref={textAreaRef}
         />
 
         <StatusBar />
