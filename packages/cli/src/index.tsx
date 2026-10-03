@@ -15,7 +15,7 @@ function App() {
     >
       <Header />
       <box width="100%" maxWidth={80} paddingX={2}>
-        <InputBar />
+        <InputBar onSubmit={() => {}}/>
       </box>
       <box flexDirection="row" gap={2}>
         <text fg="#5c382f">[Tab] Switch Mode</text>
