@@ -6,6 +6,7 @@ import { useRenderer } from "@opentui/react";
 import { useCommandMenu } from "./command-menu/use-command-menu";
 import type { Command } from "./command-menu/types";
 import { useToast } from "../providers/toast";
+import { useKeyboardLayer } from "../providers/keyboard-layer";
 
 type Props = {
   disabled?: boolean;
@@ -18,6 +19,7 @@ export function InputBar({ disabled = false, onSubmit }: Props) {
   const onSubmitRef = useRef<() => void>(() => { });
   const renderer = useRenderer();
   const toast = useToast();
+  const { isTopLayer, setResponder} = useKeyboardLayer();
 
   const {
     showCommandMenu,
@@ -94,6 +96,25 @@ export function InputBar({ disabled = false, onSubmit }: Props) {
     handleSubmit();
   }
 
+  //Register the base layer responder for ctrl + c
+  useEffect(() => {
+    setResponder("base", () => {
+      if (disabled) return false;
+
+      const textarea = textAreaRef.current;
+      if (textarea && textarea.plainText.length > 0) {
+        textarea.setText("");
+        return true
+      }
+
+      return false;
+    })
+
+    return () => {
+      setResponder("base", null);
+    }
+  }, [disabled, setResponder])
+
 
   return (
     <box width="100%">
@@ -120,7 +141,7 @@ export function InputBar({ disabled = false, onSubmit }: Props) {
           </box>
         }
         <textarea
-          focused={!disabled}
+          focused={!disabled && (isTopLayer("base") || isTopLayer("command"))}
           width="100%"
           minHeight={2}
           placeholder={`Ask anything... "Fix a bug in prod"`}
