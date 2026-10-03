@@ -5,6 +5,7 @@ import { useCallback, useEffect, useRef } from "react";
 import { useRenderer } from "@opentui/react";
 import { useCommandMenu } from "./command-menu/use-command-menu";
 import type { Command } from "./command-menu/types";
+import { useToast } from "../providers/toast";
 
 type Props = {
   disabled?: boolean;
@@ -16,6 +17,7 @@ export function InputBar({ disabled = false, onSubmit }: Props) {
   const textAreaRef = useRef<TextareaRenderable>(null);
   const onSubmitRef = useRef<() => void>(() => { });
   const renderer = useRenderer();
+  const toast = useToast();
 
   const {
     showCommandMenu,
@@ -54,12 +56,15 @@ export function InputBar({ disabled = false, onSubmit }: Props) {
     textArea.setText("");
     if (command.action) {
       command.action({
-        exit: () => renderer.destroy()
+        exit: () => {
+          renderer.destroy()
+        },
+        toast
       })
     } else {
       textArea.insertText(command.value + " ");
     }
-  }, [renderer])
+  }, [renderer, toast])
 
 
   const handleCommandExecute = useCallback((index: number) => {
