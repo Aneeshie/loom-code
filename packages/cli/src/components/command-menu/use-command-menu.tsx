@@ -3,6 +3,7 @@ import { useMemo, useRef, useState, type RefObject } from "react";
 import type { Command } from "./types";
 import { getFilteredCommands } from "./filter-commands";
 import { useKeyboard } from "@opentui/react";
+import { useKeyboardLayer } from "../../providers/keyboard-layer";
 
 
 type UseCommandMenuProps = {
@@ -11,7 +12,7 @@ type UseCommandMenuProps = {
   selectedIndex: number;
   scrollRef: RefObject<ScrollBoxRenderable| null>;
   handleContentChange: (text: string) => void;
-  resolveCommand: (index: number) => Command | void;
+  resolveCommand: (index: number) => Command | undefined;
   setSelectedIndex: (index: number) => void
 };
 
@@ -21,10 +22,16 @@ export function useCommandMenu(): UseCommandMenuProps {
   const [selectedIndex, setSelectedIndex] = useState(0)
   const [showCommandMenu, setShowCommandMenu] = useState(false)
   const scrollRef = useRef<ScrollBoxRenderable>(null);
+  const {push, pop, isTopLayer} = useKeyboardLayer()
 
   const commandQuery = showCommandMenu && textValue.startsWith("/") ? textValue.slice(1) : "";
 
   const filteredCommand = useMemo(() => getFilteredCommands(commandQuery), [commandQuery])
+
+  const close = () => {
+    setShowCommandMenu(false)
+    pop("command")
+  }
 
   const handleContentChange = (text: string) => {
     setTextValue(text)
@@ -38,8 +45,13 @@ export function useCommandMenu(): UseCommandMenuProps {
     const prefix = text.startsWith("/") ? text.slice(1) : null;
     if (prefix !== null && !prefix.includes(" ")) {
       setShowCommandMenu(true);
+      //TODO: magic commands here gotta improve this later.
+      push("command", () => {
+        close()
+        return true;
+      })
     } else {
-      setShowCommandMenu(false);
+      close()
     }
   };
 
@@ -47,18 +59,19 @@ export function useCommandMenu(): UseCommandMenuProps {
   const resolveCommand = (index: number): Command | undefined => {
     const command = filteredCommand[index];
     if (command) {
-      setShowCommandMenu(false)
+      close();
     }
     return command;
   }
 
   // arrow keys the hard part :/
   useKeyboard((event) => {
-    if (!showCommandMenu) false
+    if (!showCommandMenu || !isTopLayer("command")) false
 
     if (event.name === "escape") {
       event.preventDefault();
-      setShowCommandMenu(false);
+      close()
+
     } else if (event.name === "up") {
       event.preventDefault()
       setSelectedIndex((i: number) => {

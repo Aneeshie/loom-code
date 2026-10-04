@@ -2,13 +2,19 @@ import { createCliRenderer } from "@opentui/core";
 import { createRoot } from "@opentui/react";
 import { Header } from "./components/header";
 import { InputBar } from "./components/input-bar";
+import { ToastProvider } from "./providers/toast";
+import { KeyboardLayerProvider } from "./providers/keyboard-layer";
+import { DialogProvider } from "./providers/dialog";
+import { ThemeProvider, useTheme } from "./providers/theme";
 
-function App() {
+function ThemedRoot() {
+  const { colors } = useTheme()
+
   return (
     <box
       alignItems="center"
       justifyContent="center"
-      backgroundColor="#0a0607"
+      backgroundColor={colors.background}
       width="100%"
       height="100%"
       gap={2}
@@ -18,13 +24,27 @@ function App() {
         <InputBar onSubmit={() => {}}/>
       </box>
       <box flexDirection="row" gap={2}>
-        <text fg="#5c382f">[Tab] Switch Mode</text>
-        <text fg="#3a221c">·</text>
-        <text fg="#5c382f">[/] Commands</text>
-        <text fg="#3a221c">·</text>
-        <text fg="#5c382f">[Ctrl+C] Abort</text>
+        <text fg={colors.dimSeparator}>[Tab] Switch Mode</text>
+        <text fg={colors.dimSeparator}>·</text>
+        <text fg={colors.dimSeparator}>[/] Commands</text>
+        <text fg={colors.dimSeparator}>·</text>
+        <text fg={colors.dimSeparator}>[Ctrl+C] Abort</text>
       </box>
     </box>
+  )
+}
+
+function App() {
+  return (
+    <ThemeProvider>
+      <KeyboardLayerProvider>
+        <DialogProvider>
+          <ToastProvider>
+            <ThemedRoot />
+          </ToastProvider>
+        </DialogProvider>
+      </KeyboardLayerProvider>
+    </ThemeProvider>
   );
 }
 

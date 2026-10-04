@@ -5,6 +5,10 @@ import { useCallback, useEffect, useRef } from "react";
 import { useRenderer } from "@opentui/react";
 import { useCommandMenu } from "./command-menu/use-command-menu";
 import type { Command } from "./command-menu/types";
+import { useToast } from "../providers/toast";
+import { useKeyboardLayer } from "../providers/keyboard-layer";
+import { useDialog } from "../providers/dialog";
+import { useTheme } from "../providers/theme";
 
 type Props = {
   disabled?: boolean;
@@ -16,6 +20,10 @@ export function InputBar({ disabled = false, onSubmit }: Props) {
   const textAreaRef = useRef<TextareaRenderable>(null);
   const onSubmitRef = useRef<() => void>(() => { });
   const renderer = useRenderer();
+  const toast = useToast();
+  const dialog = useDialog();
+  const { isTopLayer, setResponder} = useKeyboardLayer();
+  const { colors } = useTheme();
 
   const {
     showCommandMenu,
@@ -54,12 +62,16 @@ export function InputBar({ disabled = false, onSubmit }: Props) {
     textArea.setText("");
     if (command.action) {
       command.action({
-        exit: () => renderer.destroy()
+        exit: () => {
+          renderer.destroy()
+        },
+        toast,
+        dialog,
       })
     } else {
       textArea.insertText(command.value + " ");
     }
-  }, [renderer])
+  }, [renderer, toast])
 
 
   const handleCommandExecute = useCallback((index: number) => {
@@ -89,22 +101,41 @@ export function InputBar({ disabled = false, onSubmit }: Props) {
     handleSubmit();
   }
 
+  //Register the base layer responder for ctrl + c
+  useEffect(() => {
+    setResponder("base", () => {
+      if (disabled) return false;
+
+      const textarea = textAreaRef.current;
+      if (textarea && textarea.plainText.length > 0) {
+        textarea.setText("");
+        return true
+      }
+
+      return false;
+    })
+
+    return () => {
+      setResponder("base", null);
+    }
+  }, [disabled, setResponder])
+
 
   return (
     <box width="100%">
       <box
         border
         borderStyle="rounded"
-        borderColor="#a63f26"
-        focusedBorderColor="#ff6239"
-        backgroundColor="#160e10"
+        borderColor={colors.primary}
+        focusedBorderColor={colors.secondary}
+        backgroundColor={colors.surface}
         width="100%"
         paddingX={2}
         paddingY={1}
         gap={1}
       >
         {showCommandMenu &&
-          <box position="absolute" bottom={"100%"} left={0} width={"100%"} backgroundColor={"#160e10"} zIndex={10}>
+          <box position="absolute" bottom={"100%"} left={0} width={"100%"} backgroundColor={colors.surface} zIndex={10}>
             <CommandPalette
               query={commandQuery}
               selectedIndex={selectedIndex}
@@ -115,12 +146,12 @@ export function InputBar({ disabled = false, onSubmit }: Props) {
           </box>
         }
         <textarea
-          focused={!disabled}
+          focused={!disabled && (isTopLayer("base") || isTopLayer("command"))}
           width="100%"
           minHeight={2}
           placeholder={`Ask anything... "Fix a bug in prod"`}
-          placeholderColor="#734e44"
-          textColor="#fdeee9"
+          placeholderColor={colors.dimSeparator}
+          textColor={colors.primary}
           backgroundColor="transparent"
           onContentChange={handleTextAreaContentChange}
           ref={textAreaRef}
