@@ -2,6 +2,7 @@ import type {  RefObject } from "react";
 import { getFilteredCommands } from "./filter-commands";
 import { ScrollBoxRenderable, TextAttributes } from "@opentui/core";
 import { COMMANDS } from "./commands";
+import { useTheme } from "../../providers/theme";
 
 const MAX_VISIBLE_ITEMS = 8
 
@@ -16,6 +17,7 @@ type CommandMenuProps = {
 }
 
 export function CommandPalette({ query, selectedIndex, scrollRef, onSelect, onExecute }: CommandMenuProps) {
+  const {colors} = useTheme()
   const filtered = getFilteredCommands(query)
   const visibleHeight = Math.min(filtered.length, MAX_VISIBLE_ITEMS)
 
@@ -36,14 +38,14 @@ export function CommandPalette({ query, selectedIndex, scrollRef, onSelect, onEx
           const isSelected = i === selectedIndex;
 
           return (
-            <box key={cmd.value} flexDirection="row" paddingX={1} height={1} overflow="hidden" backgroundColor={isSelected ? "orange" : undefined} onMouseMove={() => onSelect(i)} onMouseDown={() => onExecute(i)}>
+            <box key={cmd.value} flexDirection="row" paddingX={1} height={1} overflow="hidden" backgroundColor={isSelected ? colors.selection : undefined} onMouseMove={() => onSelect(i)} onMouseDown={() => onExecute(i)}>
               <box width={COMMAND_COL_WIDTH} flexShrink={0}>
-                <text selectable={false} fg={isSelected ? "black" : "white"}>
+                <text selectable={false} fg={isSelected ? colors.primary : colors.info}>
                   /{cmd.name}
                 </text>
               </box>
               <box flexGrow={1} flexShrink={1} overflow="hidden">
-                <text selectable={false} fg={isSelected ? "black" : "gray"}>
+                <text selectable={false} fg={isSelected ? colors.secondary : colors.dimSeparator}>
                   {cmd.description}
                 </text>
               </box>

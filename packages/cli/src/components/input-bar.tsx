@@ -8,6 +8,7 @@ import type { Command } from "./command-menu/types";
 import { useToast } from "../providers/toast";
 import { useKeyboardLayer } from "../providers/keyboard-layer";
 import { useDialog } from "../providers/dialog";
+import { useTheme } from "../providers/theme";
 
 type Props = {
   disabled?: boolean;
@@ -22,6 +23,7 @@ export function InputBar({ disabled = false, onSubmit }: Props) {
   const toast = useToast();
   const dialog = useDialog();
   const { isTopLayer, setResponder} = useKeyboardLayer();
+  const { colors } = useTheme();
 
   const {
     showCommandMenu,
@@ -124,16 +126,16 @@ export function InputBar({ disabled = false, onSubmit }: Props) {
       <box
         border
         borderStyle="rounded"
-        borderColor="#a63f26"
-        focusedBorderColor="#ff6239"
-        backgroundColor="#160e10"
+        borderColor={colors.primary}
+        focusedBorderColor={colors.secondary}
+        backgroundColor={colors.surface}
         width="100%"
         paddingX={2}
         paddingY={1}
         gap={1}
       >
         {showCommandMenu &&
-          <box position="absolute" bottom={"100%"} left={0} width={"100%"} backgroundColor={"#160e10"} zIndex={10}>
+          <box position="absolute" bottom={"100%"} left={0} width={"100%"} backgroundColor={colors.surface} zIndex={10}>
             <CommandPalette
               query={commandQuery}
               selectedIndex={selectedIndex}
@@ -148,8 +150,8 @@ export function InputBar({ disabled = false, onSubmit }: Props) {
           width="100%"
           minHeight={2}
           placeholder={`Ask anything... "Fix a bug in prod"`}
-          placeholderColor="#734e44"
-          textColor="#fdeee9"
+          placeholderColor={colors.dimSeparator}
+          textColor={colors.primary}
           backgroundColor="transparent"
           onContentChange={handleTextAreaContentChange}
           ref={textAreaRef}
