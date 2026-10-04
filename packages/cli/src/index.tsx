@@ -5,6 +5,7 @@ import { RootLayout } from "./layouts/root-layout";
 import { RouterProvider } from "react-router/dom";
 import { Home } from "./screens/home";
 import { NewSession } from "./screens/new-session";
+import { Session } from "./screens/session";
 
 const router = createMemoryRouter([
   {
