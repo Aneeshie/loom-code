@@ -1,6 +1,4 @@
-import type { Command } from "./types";
-
-
+import type { Command } from "./types"
 export const COMMANDS : Command[]= [
   {
     name: "new",
@@ -63,7 +61,10 @@ export const COMMANDS : Command[]= [
     description: "Switch between available agents",
     value: "/switch-agents",
     action: (ctx) => {
-      ctx.toast.showToast({message: "Switching agents..."})
+      ctx.dialog.open({
+        title: "Select Mode",
+        children: <text>Agent selection coming soon....</text>
+      })
     }
   },
   {

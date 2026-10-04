@@ -28,6 +28,11 @@ export function useCommandMenu(): UseCommandMenuProps {
 
   const filteredCommand = useMemo(() => getFilteredCommands(commandQuery), [commandQuery])
 
+  const close = () => {
+    setShowCommandMenu(false)
+    pop("command")
+  }
+
   const handleContentChange = (text: string) => {
     setTextValue(text)
     setSelectedIndex(0)
@@ -42,13 +47,11 @@ export function useCommandMenu(): UseCommandMenuProps {
       setShowCommandMenu(true);
       //TODO: magic commands here gotta improve this later.
       push("command", () => {
-        setShowCommandMenu(false)
-        pop("command")
+        close()
         return true;
       })
     } else {
-      setShowCommandMenu(false);
-      pop("command")
+      close()
     }
   };
 
@@ -56,9 +59,7 @@ export function useCommandMenu(): UseCommandMenuProps {
   const resolveCommand = (index: number): Command | undefined => {
     const command = filteredCommand[index];
     if (command) {
-      setShowCommandMenu(false)
-      //TODO: magic commands here gotta improve this later.
-      pop("command")
+      close();
     }
     return command;
   }
@@ -69,9 +70,7 @@ export function useCommandMenu(): UseCommandMenuProps {
 
     if (event.name === "escape") {
       event.preventDefault();
-      setShowCommandMenu(false);
-      //TODO: magic commands here gotta improve this later.
-      pop("command")
+      close()
 
     } else if (event.name === "up") {
       event.preventDefault()
