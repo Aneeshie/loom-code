@@ -1,51 +1,26 @@
 import { createCliRenderer } from "@opentui/core";
 import { createRoot } from "@opentui/react";
-import { Header } from "./components/header";
-import { InputBar } from "./components/input-bar";
-import { ToastProvider } from "./providers/toast";
-import { KeyboardLayerProvider } from "./providers/keyboard-layer";
-import { DialogProvider } from "./providers/dialog";
-import { ThemeProvider, useTheme } from "./providers/theme";
+import { createMemoryRouter } from "react-router";
+import { RootLayout } from "./layouts/root-layout";
+import { RouterProvider } from "react-router/dom";
+import { Home } from "./screens/home";
+import { NewSession } from "./screens/new-session";
+import { Session } from "./screens/session";
 
-function ThemedRoot() {
-  const { colors } = useTheme()
-
-  return (
-    <box
-      alignItems="center"
-      justifyContent="center"
-      backgroundColor={colors.background}
-      width="100%"
-      height="100%"
-      gap={2}
-    >
-      <Header />
-      <box width="100%" maxWidth={80} paddingX={2}>
-        <InputBar onSubmit={() => {}}/>
-      </box>
-      <box flexDirection="row" gap={2}>
-        <text fg={colors.dimSeparator}>[Tab] Switch Mode</text>
-        <text fg={colors.dimSeparator}>·</text>
-        <text fg={colors.dimSeparator}>[/] Commands</text>
-        <text fg={colors.dimSeparator}>·</text>
-        <text fg={colors.dimSeparator}>[Ctrl+C] Abort</text>
-      </box>
-    </box>
-  )
-}
+const router = createMemoryRouter([
+  {
+    path: "/",
+    element: <RootLayout />,
+    children: [
+      { index: true, element: <Home /> },
+      { path: "sessions/new", element: <NewSession />},
+      { path: "sessions/id", element: <Session />},
+    ]
+  }
+])
 
 function App() {
-  return (
-    <ThemeProvider>
-      <KeyboardLayerProvider>
-        <DialogProvider>
-          <ToastProvider>
-            <ThemedRoot />
-          </ToastProvider>
-        </DialogProvider>
-      </KeyboardLayerProvider>
-    </ThemeProvider>
-  );
+  return <RouterProvider router={router} />
 }
 
 const renderer = await createCliRenderer({

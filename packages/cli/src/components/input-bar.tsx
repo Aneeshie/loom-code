@@ -79,16 +79,6 @@ export function InputBar({ disabled = false, onSubmit }: Props) {
      handleCommand(command)
    }, [resolveCommand, handleCommand])
 
-  // wire up textarea submit handle once so it always reads the new state.
-  useEffect(() => {
-    const textarea = textAreaRef.current
-    if (!textarea) return
-
-    textarea.onSubmit = () => {
-      onSubmitRef.current();
-    }
-  }, [])
-
   onSubmitRef.current = () => {
     if (disabled) return
 
@@ -154,6 +144,12 @@ export function InputBar({ disabled = false, onSubmit }: Props) {
           textColor={colors.primary}
           backgroundColor="transparent"
           onContentChange={handleTextAreaContentChange}
+          onSubmit={() => onSubmitRef.current()}
+          keyBindings={[
+            { name: "return", action: "submit" },
+            { name: "kpenter", action: "submit" },
+            { name: "linefeed", action: "submit" },
+          ]}
           ref={textAreaRef}
         />
 
